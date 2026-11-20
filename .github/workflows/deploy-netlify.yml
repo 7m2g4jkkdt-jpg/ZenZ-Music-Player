@@ -1,0 +1,66 @@
+name: Deploy to Netlify
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Netlify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          ENCRYPTION_MASTER_KEY: ${{ secrets.ENCRYPTION_MASTER_KEY }}
+          ENCRYPTION_MASTER_SALT: ${{ secrets.ENCRYPTION_MASTER_SALT }}
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          APPLE_MUSIC_CLIENT_ID: ${{ secrets.APPLE_MUSIC_CLIENT_ID }}
+          APPLE_MUSIC_CLIENT_SECRET: ${{ secrets.APPLE_MUSIC_CLIENT_SECRET }}
+          APPLE_MUSIC_TEAM_ID: ${{ secrets.APPLE_MUSIC_TEAM_ID }}
+          APPLE_MUSIC_KEY_ID: ${{ secrets.APPLE_MUSIC_KEY_ID }}
+          APPLE_MUSIC_PRIVATE_KEY: ${{ secrets.APPLE_MUSIC_PRIVATE_KEY }}
+          YOUTUBE_MUSIC_CLIENT_ID: ${{ secrets.YOUTUBE_MUSIC_CLIENT_ID }}
+          YOUTUBE_MUSIC_CLIENT_SECRET: ${{ secrets.YOUTUBE_MUSIC_CLIENT_SECRET }}
+          TIDAL_CLIENT_ID: ${{ secrets.TIDAL_CLIENT_ID }}
+          TIDAL_CLIENT_SECRET: ${{ secrets.TIDAL_CLIENT_SECRET }}
+          DEEZER_CLIENT_ID: ${{ secrets.DEEZER_CLIENT_ID }}
+          DEEZER_CLIENT_SECRET: ${{ secrets.DEEZER_CLIENT_SECRET }}
+          SOUNDCLOUD_CLIENT_ID: ${{ secrets.SOUNDCLOUD_CLIENT_ID }}
+          SOUNDCLOUD_CLIENT_SECRET: ${{ secrets.SOUNDCLOUD_CLIENT_SECRET }}
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3.0
+        with:
+          publish-dir: './.next'
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: "Deploy from GitHub Actions"
+          enable-pull-request-comment: false
+          enable-commit-comment: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 10
